@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA Tournament Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚽ FIFA Tournament Manager</h1>
+        </header>
+
+        <!-- Setup Phase -->
+        <div id="setupPhase" class="phase active">
+            <div class="setup-form">
+                <h2>Tournament Setup</h2>
+                
+                <div class="form-group">
+                    <label for="tournamentName">Tournament Name:</label>
+                    <input type="text" id="tournamentName" placeholder="Enter tournament name">
+                </div>
+
+                <div class="form-group">
+                    <label for="teamsCount">Number of Teams:</label>
+                    <input type="number" id="teamsCount" min="2" max="32" value="8">
+                </div>
+
+                <div class="form-group">
+                    <label for="gamesPerTeam">Games per Team:</label>
+                    <input type="number" id="gamesPerTeam" min="1" value="4">
+                </div>
+
+                <div class="form-group">
+                    <label for="teamsAdvancing">Teams Advancing to Knockout:</label>
+                    <select id="teamsAdvancing">
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                        <option value="12">12</option>
+                        <option value="14">14</option>
+                        <option value="16">16</option>
+                        <option value="18">18</option>
+                        <option value="20">20</option>
+                        <option value="22">22</option>
+                        <option value="24">24</option>
+                        <option value="26">26</option>
+                        <option value="28">28</option>
+                        <option value="30">30</option>
+                        <option value="32">32</option>
+                    </select>
+                </div>
+
+                <div id="playersContainer">
+                    <h3>Players & Teams</h3>
+                    <div class="player-inputs">
+                        <!-- Dynamic player inputs will be added here -->
+                    </div>
+                </div>
+
+                <button id="startTournament" class="btn btn-primary">Start Tournament</button>
+            </div>
+        </div>
+
+        <!-- League Phase -->
+        <div id="leaguePhase" class="phase">
+            <div class="phase-header">
+                <h2>League Phase</h2>
+                <button id="generateSchedule" class="btn btn-secondary">Generate Schedule</button>
+            </div>
+
+            <div class="standings-section">
+                <h3>League Table</h3>
+                <div id="standingsTable" class="table-container">
+                    <!-- Standings table will be generated here -->
+                </div>
+            </div>
+
+            <div class="matches-section">
+                <h3>Matches</h3>
+                <div id="matchesContainer" class="matches-container">
+                    <!-- Matches will be generated here -->
+                </div>
+            </div>
+
+            <button id="proceedToKnockout" class="btn btn-primary" disabled>Proceed to Knockout Stage</button>
+        </div>
+
+        <!-- Knockout Phase -->
+        <div id="knockoutPhase" class="phase">
+            <div class="phase-header">
+                <h2>Knockout Stage</h2>
+            </div>
+
+            <div id="playoffRound" class="bracket-section">
+                <!-- Playoff round will be shown if needed -->
+            </div>
+
+            <div id="mainBracket" class="bracket-section">
+                <!-- Main knockout bracket will be generated here -->
+            </div>
+
+            <button id="backToLeague" class="btn btn-secondary">Back to League</button>
+        </div>
+    </div>
+
+    <!-- Match Result Modal -->
+    <div id="matchModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Enter Match Result</h3>
+            <div id="matchDetails"></div>
+            <div class="score-input">
+                <input type="number" id="homeScore" min="0" placeholder="0">
+                <span>vs</span>
+                <input type="number" id="awayScore" min="0" placeholder="0">
+            </div>
+            <button id="saveResult" class="btn btn-primary">Save Result</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
