@@ -384,9 +384,53 @@ class TournamentManager {
 
     renderStandings() {
         const container = document.getElementById('standingsTable');
-        const { standings, teamsAdvancing } = this.tournament;
+        const { standings, teamsAdvancing, teamsCount } = this.tournament;
 
-        let html = `
+        // Calculate qualification zones
+        const traditionalNumbers = [4, 8, 16, 32];
+        let automaticSpots, playoffSpots, riskSpots;
+
+        if (traditionalNumbers.includes(teamsAdvancing)) {
+            // All qualifying spots are automatic for traditional numbers
+            automaticSpots = teamsAdvancing;
+            playoffSpots = 0;
+        } else {
+            // Calculate automatic vs playoff spots for non-traditional numbers
+            const nextLowerTraditional = traditionalNumbers
+                .filter(num => num < teamsAdvancing)
+                .reduce((max, num) => Math.max(max, num), 0);
+            
+            playoffSpots = teamsAdvancing - nextLowerTraditional;
+            automaticSpots = teamsAdvancing - playoffSpots;
+        }
+
+        // Calculate at-risk spots (teams that don't qualify)
+        riskSpots = teamsCount - teamsAdvancing;
+
+        // Create legend HTML
+        const legendHtml = `
+            <div class="qualification-legend">
+                <div class="legend-title">Qualification Zones</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color legend-automatic"></div>
+                        <span>Automatic Qualification (Top ${automaticSpots})</span>
+                    </div>
+                    ${playoffSpots > 0 ? `
+                    <div class="legend-item">
+                        <div class="legend-color legend-playoff"></div>
+                        <span>Playoff Positions (Next ${playoffSpots})</span>
+                    </div>
+                    ` : ''}
+                    <div class="legend-item">
+                        <div class="legend-color legend-risk"></div>
+                        <span>At Risk (Bottom ${riskSpots})</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        let html = legendHtml + `
             <table>
                 <thead>
                     <tr>
@@ -407,22 +451,30 @@ class TournamentManager {
         `;
 
         standings.forEach((standing, index) => {
-            const isQualifying = index < teamsAdvancing;
-            const rowClass = isQualifying ? 'qualification-spot' : '';
+            let qualificationClass = '';
+            
+            // Determine qualification zone
+            if (index < automaticSpots) {
+                qualificationClass = 'qualification-automatic';
+            } else if (index < teamsAdvancing) {
+                qualificationClass = 'qualification-playoff';
+            } else if (index >= teamsCount - riskSpots) {
+                qualificationClass = 'qualification-risk';
+            }
             
             html += `
-                <tr class="${rowClass}">
-                    <td>${index + 1}</td>
-                    <td>${standing.player}</td>
-                    <td>${standing.team}</td>
-                    <td>${standing.played}</td>
-                    <td>${standing.won}</td>
-                    <td>${standing.drawn}</td>
-                    <td>${standing.lost}</td>
-                    <td>${standing.goalsFor}</td>
-                    <td>${standing.goalsAgainst}</td>
-                    <td>${standing.goalDifference}</td>
-                    <td><strong>${standing.points}</strong></td>
+                <tr>
+                    <td class="${qualificationClass}">${index + 1}</td>
+                    <td class="${qualificationClass}">${standing.player}</td>
+                    <td class="${qualificationClass}">${standing.team}</td>
+                    <td class="${qualificationClass}">${standing.played}</td>
+                    <td class="${qualificationClass}">${standing.won}</td>
+                    <td class="${qualificationClass}">${standing.drawn}</td>
+                    <td class="${qualificationClass}">${standing.lost}</td>
+                    <td class="${qualificationClass}">${standing.goalsFor}</td>
+                    <td class="${qualificationClass}">${standing.goalsAgainst}</td>
+                    <td class="${qualificationClass}">${standing.goalDifference}</td>
+                    <td class="${qualificationClass}"><strong>${standing.points}</strong></td>
                 </tr>
             `;
         });
@@ -531,11 +583,12 @@ class TournamentManager {
 
         if (!traditionalNumbers.includes(teamsAdvancing)) {
             // Generate playoff matches to reduce to next traditional number
-            const nextTraditional = traditionalNumbers.find(num => num > teamsAdvancing) || 32;
-            const teamsNeeded = nextTraditional - teamsAdvancing;
+            const nextLowerTraditional = traditionalNumbers
+                .filter(num => num < teamsAdvancing)
+                .reduce((max, num) => Math.max(max, num), 0);
             
-            // Teams that need to play playoffs (lower ranked teams)
-            const playoffTeams = qualifyingTeams.slice(-teamsNeeded * 2);
+            const playoffSpots = teamsAdvancing - nextLowerTraditional;
+            const playoffTeams = qualifyingTeams.slice(-playoffSpots * 2);
             mainBracketTeams = qualifyingTeams.slice(0, qualifyingTeams.length - playoffTeams.length);
 
             // Create playoff matches
