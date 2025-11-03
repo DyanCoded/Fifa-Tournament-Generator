@@ -2,12 +2,14 @@ class TournamentManager {
     constructor() {
         this.tournament = null;
         this.currentMatch = null;
+        this.pendingResetType = null;
         this.init();
     }
 
     init() {
         this.loadFromStorage();
         this.bindEvents();
+        this.initReset();
         this.updatePlayersInputs();
     }
 
@@ -33,6 +35,166 @@ class TournamentManager {
                 this.closeModal();
             }
         });
+    }
+
+    // Reset functionality
+    initReset() {
+        document.getElementById('resetTournament').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleResetOptions();
+        });
+
+        // Close reset options when clicking elsewhere
+        document.addEventListener('click', () => {
+            this.hideResetOptions();
+        });
+
+        // Add event listeners to reset options
+        document.querySelectorAll('.reset-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const resetType = e.target.dataset.resetType;
+                this.showConfirmation(resetType);
+            });
+        });
+
+        // Confirmation modal events
+        document.getElementById('confirmResetYes').addEventListener('click', () => {
+            this.executeReset(this.pendingResetType);
+            this.hideConfirmation();
+        });
+
+        document.getElementById('confirmResetNo').addEventListener('click', () => {
+            this.hideConfirmation();
+        });
+    }
+
+    toggleResetOptions() {
+        const options = document.getElementById('resetOptions');
+        options.classList.toggle('show');
+    }
+
+    hideResetOptions() {
+        const options = document.getElementById('resetOptions');
+        options.classList.remove('show');
+    }
+
+    showConfirmation(resetType) {
+        this.pendingResetType = resetType;
+        const modal = document.getElementById('confirmationModal');
+        const message = document.getElementById('confirmationMessage');
+        
+        const messages = {
+            full: 'Are you sure you want to completely reset the tournament? All data will be lost and you\'ll start from scratch.',
+            league: 'Are you sure you want to reset the league phase? This will clear all league matches and standings.',
+            knockout: 'Are you sure you want to reset the knockout phase? This will clear all knockout matches and brackets.',
+            results: 'Are you sure you want to reset all match results? This will clear all scores but keep the schedule.'
+        };
+
+        message.textContent = messages[resetType] || 'Are you sure you want to reset?';
+        modal.style.display = 'block';
+        this.hideResetOptions();
+    }
+
+    hideConfirmation() {
+        const modal = document.getElementById('confirmationModal');
+        modal.style.display = 'none';
+        this.pendingResetType = null;
+    }
+
+    executeReset(resetType) {
+        if (!this.tournament && resetType !== 'full') return;
+
+        switch (resetType) {
+            case 'full':
+                this.fullReset();
+                break;
+            case 'league':
+                this.resetLeaguePhase();
+                break;
+            case 'knockout':
+                this.resetKnockoutPhase();
+                break;
+            case 'results':
+                this.resetMatchResults();
+                break;
+        }
+
+        this.saveToStorage();
+    }
+
+    fullReset() {
+        localStorage.removeItem('fifaTournament');
+        this.tournament = null;
+        
+        // Clear all form inputs
+        document.getElementById('tournamentName').value = '';
+        document.getElementById('teamsCount').value = '8';
+        document.getElementById('gamesPerTeam').value = '4';
+        document.getElementById('teamsAdvancing').value = '4';
+        
+        this.updatePlayersInputs();
+        this.showPhase('setupPhase');
+    }
+
+    resetLeaguePhase() {
+        if (this.tournament) {
+            this.tournament.matches = [];
+            this.tournament.standings = [];
+            this.tournament.phase = 'league';
+            this.renderMatches();
+            this.renderStandings();
+        }
+    }
+
+    resetKnockoutPhase() {
+        if (this.tournament && this.tournament.phase === 'knockout') {
+            this.tournament.playoffMatches = [];
+            this.tournament.knockoutMatches = [];
+            this.tournament.phase = 'league';
+            this.showPhase('leaguePhase');
+            this.renderKnockoutBracket();
+        }
+    }
+
+    resetMatchResults() {
+        if (this.tournament) {
+            // Reset league match results
+            this.tournament.matches.forEach(match => {
+                match.homeScore = null;
+                match.awayScore = null;
+                match.played = false;
+            });
+
+            // Reset knockout match results
+            if (this.tournament.playoffMatches) {
+                this.tournament.playoffMatches.forEach(match => {
+                    match.homeScore = null;
+                    match.awayScore = null;
+                    match.played = false;
+                    match.winner = null;
+                });
+            }
+
+            if (this.tournament.knockoutMatches) {
+                this.tournament.knockoutMatches.forEach(match => {
+                    if (match.away !== null) { // Don't reset byes
+                        match.homeScore = null;
+                        match.awayScore = null;
+                        match.played = false;
+                        match.winner = null;
+                    }
+                });
+            }
+
+            this.updateStandings();
+            this.renderMatches();
+            this.renderStandings();
+            
+            if (this.tournament.phase === 'knockout') {
+                this.renderKnockoutBracket();
+            }
+        }
     }
 
     updatePlayersInputs() {

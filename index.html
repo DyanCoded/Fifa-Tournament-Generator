@@ -10,6 +10,15 @@
     <div class="container">
         <header>
             <h1>⚽ FIFA Tournament Manager</h1>
+            <div class="reset-section">
+                <button id="resetTournament" class="btn btn-danger">Reset Tournament</button>
+                <div id="resetOptions" class="reset-options">
+                    <button class="reset-option" data-reset-type="full">Full Reset (Start Over)</button>
+                    <button class="reset-option" data-reset-type="league">Reset League Phase</button>
+                    <button class="reset-option" data-reset-type="knockout">Reset Knockout Phase</button>
+                    <button class="reset-option" data-reset-type="results">Reset Match Results Only</button>
+                </div>
+            </div>
         </header>
 
         <!-- Setup Phase -->
@@ -118,6 +127,18 @@
                 <input type="number" id="awayScore" min="0" placeholder="0">
             </div>
             <button id="saveResult" class="btn btn-primary">Save Result</button>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <h3>Confirm Reset</h3>
+            <p id="confirmationMessage">Are you sure you want to reset?</p>
+            <div class="confirmation-buttons">
+                <button id="confirmResetYes" class="confirm-btn confirm-yes">Yes, Reset</button>
+                <button id="confirmResetNo" class="confirm-btn confirm-no">Cancel</button>
+            </div>
         </div>
     </div>
 
